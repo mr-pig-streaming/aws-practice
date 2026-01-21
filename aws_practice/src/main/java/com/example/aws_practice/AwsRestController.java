@@ -3,14 +3,15 @@ package com.example.aws_practice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+
+import javax.json.*;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import org.postgresql.Driver;
 
 @RestController
@@ -64,7 +65,39 @@ public class AwsRestController {
 
     @GetMapping("/records/{id}")
     public ResponseEntity<Object> getRecord(@PathVariable("id") String id) {
-        return new ResponseEntity<>("Seeking record for id " + id, HttpStatus.FOUND);
+        Connection connection;
+        String output;
+        try {
+            Class.forName("org.postgresql.Driver");
+            connection = DriverManager.getConnection(jdbcURL, username, password);
+            System.out.println("Connected to PostgreSQL database!");
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM vehicles WHERE id = ?");
+            statement.setInt(1, Integer.parseInt(id));
+            ResultSet result = statement.executeQuery();
+            result.next();
+            JsonObjectBuilder builder = Json.createObjectBuilder();
+            builder.add("id", result.getString(1));
+            builder.add("vin", result.getString(2));
+            builder.add("make", result.getString(3));
+            builder.add("model", result.getString(4));
+            builder.add("year", result.getString(5));
+            JsonObject vehicle = builder.build();
+            JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+            arrayBuilder.add(vehicle);
+            builder = Json.createObjectBuilder();
+            builder.add("vehicles", arrayBuilder.build());
+            JsonObject vehicles = builder.build();
+            StringWriter outputWriter = new StringWriter();
+            JsonWriter writer = Json.createWriter(outputWriter);
+            writer.writeObject(vehicles);
+            writer.close();
+            output = outputWriter.toString();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Connection to database failed", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(output, HttpStatus.FOUND);
     }
 
     @GetMapping("/records")
