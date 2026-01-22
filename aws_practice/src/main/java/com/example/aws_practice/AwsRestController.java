@@ -1,5 +1,8 @@
 package com.example.aws_practice;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +17,19 @@ import org.postgresql.Driver;
 @RestController
 public class AwsRestController {
 
-    String jdbcURL = "jdbc:postgresql://localhost:5432/postgres";
-    String username = "postgres";
-    // Temporary password may be committed to git during development. Will be replaced with permanent password before deployment
-    String password = "eufWT!A4Jj_eGGUm";
+    @Autowired
+    private Environment env;
+
+    String jdbcURL;
+    String username;
+    String password;
+
+    @PostConstruct
+    public void init() {
+        jdbcURL = env.getProperty("spring.database.connection");
+        username = env.getProperty("spring.database.username");
+        password = env.getProperty("spring.database.password");
+    }
 
     @GetMapping("/")
     public String index() {
@@ -39,17 +51,18 @@ public class AwsRestController {
         JsonReader reader = Json.createReader(new StringReader(jsonRecords));
         JsonArray vehicles = reader.readObject().getJsonArray("vehicles");
         PreparedStatement insertStatement;
+        int totalCreated = 0;
         for (int i  = 0; i < vehicles.size(); i++) {
             JsonReader vehicleReader = Json.createReader(new StringReader(vehicles.get(i).toString()));
             JsonObject vehicle = vehicleReader.readObject();
             try {
-                PreparedStatement statement = connection.prepareStatement("INSERT INTO vehicles (id, vin, make, model, year) VALUES (?, ?, ?, ?, ?)");
-                statement.setInt(1, Integer.parseInt(vehicle.getString("id")));
-                statement.setString(2, vehicle.getString("vin"));
-                statement.setString(3, vehicle.getString("make"));
-                statement.setString(4, vehicle.getString("model"));
-                statement.setInt(5, Integer.parseInt(vehicle.getString("year")));
+                PreparedStatement statement = connection.prepareStatement("INSERT INTO vehicles (vin, make, model, year) VALUES (?, ?, ?, ?)");
+                statement.setString(1, vehicle.getString("vin"));
+                statement.setString(2, vehicle.getString("make"));
+                statement.setString(3, vehicle.getString("model"));
+                statement.setInt(4, Integer.parseInt(vehicle.getString("year")));
                 int rowsAffected = statement.executeUpdate();
+                totalCreated += rowsAffected;
                 System.out.println("Inserted " + rowsAffected + " rows.");
             }
             catch (Exception e) {
@@ -57,7 +70,7 @@ public class AwsRestController {
                 return new ResponseEntity<>("Creation of record failed", HttpStatus.BAD_REQUEST);
             }
         }
-        return new ResponseEntity<>("Record is successfully created", HttpStatus.CREATED);
+        return new ResponseEntity<>("Successfully created " + totalCreated + " records.", HttpStatus.CREATED);
     }
 
     @GetMapping("/records/{id}")
