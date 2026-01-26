@@ -20,11 +20,10 @@ jobs:
           java-version: '21'
         
       - name: Directory Check
-        run: ls -R
+        run: ls -lR /home/runner/work/aws-practice/aws-practice/
 
       - name: Build with Maven
         run: mvn clean package
-        working-directory: ./aws-practice
 
       - name: Debug Maven Build Output
         run: ls -R target
