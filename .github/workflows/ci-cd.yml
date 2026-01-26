@@ -27,11 +27,11 @@ jobs:
         working-directory: /home/runner/work/aws-practice/aws-practice/aws_practice
 
       - name: Debug Maven Build Output
-        run: ls -R target
+        run: ls -R aws-practice/target
 
       - name: Check for Artifacts
         run: |
-          if [ ! -f target/*.jar ]; then
+          if [ ! -f aws-practice/target/*.jar ]; then
             echo "Error: No artifacts found in target directory."
             exit 1
           fi
@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packaged-application
-          path: target/*.jar
+          path: aws-practice/target/*.jar
   
   deploy:
     needs: build
@@ -51,7 +51,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: packaged-application
-          path: target/
+          path: aws-practice/target/
 
       - name: Setup key
         id: setup-key
@@ -67,7 +67,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ec2-user
           key: ${{ secrets.DEPLOY_KEY }}
-          source: "target/*.jar"
+          source: "aws-practice/target/*.jar"
           target: "/home/ec2-user/deployment/"
 
       - name: Connect SSH and Restart Services
