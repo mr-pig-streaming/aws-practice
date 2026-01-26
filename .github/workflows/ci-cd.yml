@@ -24,6 +24,7 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package
+        working-directory: /home/runner/work/aws-practice/aws-practice/aws_practice
 
       - name: Debug Maven Build Output
         run: ls -R target
