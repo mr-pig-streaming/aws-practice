@@ -11,22 +11,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
           java-version: '21'
-
-      - name: Check directory
-        run: pwd
         
       - name: Directory Check
         run: ls -R
 
       - name: Build with Maven
         run: mvn clean package
+        working-directory: ./aws-practice
 
       - name: Debug Maven Build Output
         run: ls -R target
