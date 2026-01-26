@@ -19,6 +19,9 @@ jobs:
           distribution: 'adopt'
           java-version: '21'
 
+      - name: Check directory
+        run: pwd
+
       - name: Build with Maven
         run: mvn clean package
 
