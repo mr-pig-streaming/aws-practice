@@ -21,6 +21,9 @@ jobs:
 
       - name: Check directory
         run: pwd
+        
+      - name: Directory Check
+        run: ls -R
 
       - name: Build with Maven
         run: mvn clean package
