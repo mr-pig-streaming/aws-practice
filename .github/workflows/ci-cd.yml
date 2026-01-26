@@ -69,6 +69,7 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           source: "/home/runner/work/aws-practice/aws-practice/aws_practice/target/*.jar"
           target: "/home/ec2-user/deployment/"
+          strip_components: 6
 
       - name: Connect SSH and Restart Services
         env:
