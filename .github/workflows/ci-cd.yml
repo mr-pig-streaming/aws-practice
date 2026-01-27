@@ -74,7 +74,8 @@ jobs:
       - name: Connect SSH and Restart Services
         run: |
           ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ec2-user@${{ secrets.DEPLOY_HOST }} '
-            sudo pkill java
+            SERVER_PID="$(sudo lsof -n -i :8080 -Fp | cut -c 2-)"
+            sudo kill $SERVER_PID
             export DB_HOST=${{ secrets.DB_HOST }}
             export DB_USERNAME=${{ secrets.DB_USERNAME }}
             export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
