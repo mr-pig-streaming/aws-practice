@@ -72,11 +72,10 @@ jobs:
           strip_components: 6
 
       - name: Connect SSH and Restart Services
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ec2-user@${{ secrets.DEPLOY_HOST }} '
+            export DB_HOST=${{ secrets.DB_HOST }}
+            export DB_USERNAME=${{ secrets.DB_USERNAME }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             sudo systemctl restart spring-boot-app
           '
