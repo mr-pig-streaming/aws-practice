@@ -82,7 +82,11 @@ public class AwsRestController {
             connection = DriverManager.getConnection(jdbcURL, username, password);
             System.out.println("Connected to PostgreSQL database!");
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM vehicles WHERE id = ?");
-            statement.setInt(1, Integer.parseInt(id));
+            var parsedId = Integer.parseInt(id);
+            if (parsedId < 0) {
+                throw new NumberFormatException();
+            }
+            statement.setInt(1, parsedId);
             ResultSet result = statement.executeQuery();
             result.next();
             JsonObjectBuilder builder = Json.createObjectBuilder();
@@ -103,6 +107,10 @@ public class AwsRestController {
             writer.close();
             output = outputWriter.toString();
         }
+        catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+            return new ResponseEntity<>("Record ID must be a positive integer", HttpStatus.BAD_REQUEST);
+        }
         catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("Connection to database failed", HttpStatus.BAD_REQUEST);
@@ -118,10 +126,9 @@ public class AwsRestController {
             Class.forName("org.postgresql.Driver");
             connection = DriverManager.getConnection(jdbcURL, username, password);
             System.out.println("Connected to PostgreSQL database!");
-            //PreparedStatement statement = connection.prepareStatement("SELECT * FROM vehicles WHERE ?");
+            String cleanedFilter = filter.split(";")[0];
             Statement statement = connection.createStatement();
-            ResultSet result = statement.executeQuery("SELECT * FROM vehicles WHERE " + filter);
-            //statement.setString(1, filter);
+            ResultSet result = statement.executeQuery("SELECT * FROM vehicles WHERE " + cleanedFilter);
             //ResultSet result = statement.executeQuery();
             JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
             JsonObjectBuilder builder;
